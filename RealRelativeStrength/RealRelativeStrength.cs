@@ -34,29 +34,37 @@ namespace cAlgo
         private AverageTrueRange _comparedATR;
         private AverageTrueRange _symbolATR;
 
-        private double comparedRollingMove;
-        private double symbolRollingMove;
+        private double _comparedRollingMove;
+        private double _symbolRollingMove;
         protected override void Initialize()
         {
             // To learn more about cTrader Automate visit our Help Center:
             // https://help.ctrader.com/ctrader-automate
              _relativeStrength = CreateDataSeries();
-            
+            _maRelativeStrength = Indicators.MovingAverage(_relativeStrength, Smooth, MovingAverageType.Simple);
+
+
             _comparedBars = MarketData.GetBars(Bars.TimeFrame, ComparedSymbol);
             _comparedATR = Indicators.AverageTrueRange(_comparedBars, Lookback, MovingAverageType.Simple);
 
             _symbolATR = Indicators.AverageTrueRange(Lookback, MovingAverageType.Simple);
-            _maRelativeStrength = Indicators.MovingAverage(_relativeStrength, Smooth, MovingAverageType.Simple);
         }
 
         public override void Calculate(int index)
         {
             // Calculate value at specified index
             // Result[index] =
-            comparedRollingMove = _comparedBars.ClosePrices.Last(0) - _comparedBars.ClosePrices.Last(Lookback);
-            symbolRollingMove = Bars.ClosePrices.Last() - Bars.ClosePrices.Last(Lookback);
+            if(index > Lookback)
+            {
+                _comparedRollingMove = _comparedBars.ClosePrices[index] - _comparedBars.ClosePrices[index - Lookback];
+                _symbolRollingMove = Bars.ClosePrices[index] - Bars.ClosePrices[index - Lookback];
 
-            _relativeStrength[index] = (symbolRollingMove / _symbolATR.Result.Last()) - (comparedRollingMove / _comparedATR.Result.Last());
+                _relativeStrength[index] = (_symbolRollingMove / _symbolATR.Result[index - 1]) - (_comparedRollingMove / _comparedATR.Result[index-1]);
+            }
+            else
+            {
+                _relativeStrength[index] = 0;
+            }
 
             RRS[index] = _maRelativeStrength.Result.Last();
 
