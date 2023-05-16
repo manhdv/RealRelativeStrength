@@ -9,6 +9,7 @@ using cAlgo.API.Internals;
 
 namespace cAlgo
 {
+    [Levels(4, 0, -4)]
     [Indicator(AccessRights = AccessRights.None, IsOverlay = false)]
     public class RealRelativeStrength : Indicator
     {
@@ -24,6 +25,7 @@ namespace cAlgo
         [Output("Real Relative Strength", LineColor = "Red")]
         public IndicatorDataSeries RRS { get; set; }
 
+        public IndicatorDataSeries LowerBand { get; set; }
 
         private Bars _comparedBars;
         private IndicatorDataSeries _relativeStrength;
@@ -38,6 +40,8 @@ namespace cAlgo
         {
             // To learn more about cTrader Automate visit our Help Center:
             // https://help.ctrader.com/ctrader-automate
+             _relativeStrength = CreateDataSeries();
+            
             _comparedBars = MarketData.GetBars(Bars.TimeFrame, ComparedSymbol);
             _comparedATR = Indicators.AverageTrueRange(_comparedBars, Lookback, MovingAverageType.Simple);
 
